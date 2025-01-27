@@ -3,77 +3,6 @@ import express from 'express'
 const app = express();
 app.use(express.json())
 
-
-// let teaData = [];
-// let idFirst = 1
-
-// app.post("/api/tea", (req, res) => {
-//   const { name, price } = req.body
-//   console.log('name:', name, 'price', price)
-//   const newNum = { id: idFirst++, name, price };
-
-//   teaData.push(newNum)
-//   console.log(newNum)
-//   res.status(201).send(newNum);
-// })
-
-// app.get("/api/tea", (req, res) => {
-//   return res.status(201).json(teaData);
-//   console.log(teaData)
-// })
-
-// app.patch("/api/tea", (req, res) => {
-//   const { id, name, author, date, price } = req.body;
-//   console.log(id);
-
-//   let updatedItems = books.findIndex((obj) => (
-//     obj.id === id
-//   ))
-//   console.log(updatedItems);
-//   books[updatedItems] = {
-//     id, name, price, author, date
-//   }
-//   console.log(books);
-//   res.sendStatus(200)
-// })
-
-// app.put("/api/tea", (req, res) => {
-//   const { name, id, author } = req.body;
-
-//   const bookIdx = books.findIndex((book) => (
-//     book.id === id))
-
-//   console.log(bookIdx);
-//   books[bookIdx] = {
-//     name, author
-//   }
-//   console.log("books", books)
-//   res.sendStatus(204)
-// })
-
-// app.get("/api/tea/:id", (req, res) => {
-//   let id = parseInt(req.params.id);
-//   let findId = teaData.find(el => el.id === id);
-//   if (!findId) {
-//     return res.status(404).send("Data Not found")
-//   }
-//   res.send(200).send(findId)
-// })
-
-
-// app.delete("/api/tea/:id", (req, res) => {
-//   const id = req.params.id;
-//   console.log(id);
-
-//   const dleBook = books.filter((book) => (
-//     book.id != id
-//   ))
-//   console.log(dleBook);
-//   res.sendStatus(200)
-
-
-// })
-
 const allMusic = [
   {
     "id": 1,
@@ -129,15 +58,32 @@ const allMusic = [
 
 let id = allMusic.length + 1;
 
+app.get("/api/music/available", ((req, res) => {
+  const availData = allMusic.filter((obj) => (obj.available === true))
+  console.log(availData);
+  res.status(202).json({
+    message: "AVailable data are",
+    availData
+  })
+  // res.status(200).json(allMusic)
+}))
+
 // to get or display information
 app.get("/api/music", ((req, res) => {
   res.status(200).json(allMusic)
 }))
 
+//To find data according to id 
+app.get("/api/music/:id", (req, res) => {
+  let id = parseInt(req.params.id);
+  const newArray = allMusic.find((music) => music.id === id);
+  res.status(202).json(newArray)
+})
+
 // to add an array to allmusic
 app.post("/api/music", ((req, res) => {
   const { name, gener, price, author, published, available, rating } = req.body;
-  if(name === "" || gener === "" || price === "" || author === "" || published === "" || available === "" || rating === ""){
+  if (name === "" || gener === "" || price === "" || author === "" || published === "" || available === "" || rating === "") {
     res.status(302).json({
       message: "Please don't enter blank value"
     })
@@ -146,7 +92,7 @@ app.post("/api/music", ((req, res) => {
     id: id++,
     name, gener, price, author, published, available, rating
   }
-   allMusic.push(newData);
+  allMusic.push(newData);
   res.status(200).json({
     message: 'New data has been inserted'
   })
@@ -154,35 +100,64 @@ app.post("/api/music", ((req, res) => {
 
 //for updating the data of allmusic array..............
 
-app.put("/api/music",(req, res)=>{
+app.put("/api/music", (req, res) => {
   const { name, genre, price, author, published, available, rating } = req.body;
   let newId = parseInt(req.body.id)
 
-      let newName = allMusic.findIndex((el)=> {
-           return el.id === newId;
-      });
-      if(newName === -1){
-        res.status(404).json({
-          message: "resources not found"
-        })
-      }
-      allMusic[newName] = {
-        ...allMusic[newName],
-        name, genre, price, author, published, available, rating
-      }
-      res.status(200).json({ message: "Music updated successfully", updatedMusic: allMusic[newName] });
+  let newName = allMusic.findIndex((el) => {
+    return el.id === newId;
+  });
+  if (newName === -1) {
+    return res.status(404).json({
+      message: "resources not found"
+    })
+  }
+  allMusic[newName] = {
+    ...allMusic[newName],
+    name, genre, price, author, published, available, rating
+  }
+  res.status(200).json({ message: "Music updated successfully", updatedMusic: allMusic[newName] });
 })
 
 // To delete object in array;
-app.delete("/api/music/:id", (req, res)=>{
+app.delete("/api/music/:id", (req, res) => {
   const id = parseInt(req.params.id);
-   let deletedMusic = allMusic.filter((music)=> music.id !== id);
+  let deletedMusic = allMusic.filter((music) => music.id !== id);
   res.status(200).json({ message: `Data ${id} is deleted`, deletedObj: deletedMusic })
-   if(allMusic.length != deletedMusic.length){
+  if (allMusic.length != deletedMusic.length) {
     allMusic.length = 0
     allMusic.push(...deletedMusic)
-   }
+  }
 })
+
+
+// To check according to the availabiltiy of Items
+// app.get("/api/music/available", (req, res)=>{
+//   console.log('hi')
+//   const availData = allMusic.filter((obj) => (obj.available === true))
+//   console.log(availData);
+//   res.status(202).json({
+//     message: "AVailable data are",
+//     availData
+//   })
+// })
+
+// Below this, there is a concept of middleware
+app.use((req, res, next) => {
+  console.log(`Method: ${req.method}, URL: ${req.url}`);
+  next(); 
+});
+
+app.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    return res.sendStatus(404).json("")
+  }
+  next();
+});
+
+app.get('/', (req, res) => {
+  res.send('Hello, Middleware!');
+});
 
 app.listen(3000, () => {
   console.log("server started");
